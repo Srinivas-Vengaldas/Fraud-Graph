@@ -14,7 +14,7 @@ export interface AppDeps {
   engine?: RiskEngine; // when given, it is the scorer and the review routes are enabled
   metrics?: Metrics;
   idempotencyTtlSec?: number;
-  logger?: boolean;
+  logger?: boolean | { level: string };
 }
 
 export function buildApp(deps: AppDeps): FastifyInstance {

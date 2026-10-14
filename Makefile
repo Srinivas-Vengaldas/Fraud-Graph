@@ -80,3 +80,9 @@ lift:            ## rules vs model vs both at equal review volume (after replay-
 
 web:             ## analyst UI dev server on :5173 (proxies the API on :3000)
 	cd web && npx vite
+
+load:            ## k6 at fixed concurrency against BASE_URL (default local API)
+	$(PY) load/make_bodies.py
+	docker run --rm -v "$$PWD":/w -w /w -e BASE_URL=$(or $(BASE_URL),http://host.docker.internal:3000) \
+	  -e BODIES=/w/data/clean/k6_bodies.json -e VUS=$(or $(VUS),20) -e DURATION=$(or $(DURATION),60s) grafana/k6 run load/k6-score.js
+	docker compose exec -T db psql -U $${PG_USER:-fraudgraph} -d $${PG_DB:-fraudgraph} < load/cleanup.sql
