@@ -12,7 +12,7 @@
 import { createReadStream, readFileSync } from "node:fs";
 import { createInterface } from "node:readline";
 import { node, RingGraph } from "../src/graph/rings.js";
-import { upsertResultsSection } from "./resultsMd.js";
+import { README, upsertResultsSection } from "./resultsMd.js";
 
 interface Event {
   id: number;
@@ -104,5 +104,22 @@ lines.push(
     "The last column excludes the transaction's own card entity, separating the ring signal from a plain blocklist hit.",
 );
 upsertResultsSection("rings", lines.join("\n"));
+const [uncapped, capped] = results as [(typeof results)[0], (typeof results)[0]];
+upsertResultsSection(
+  "rings-summary",
+  [
+    `Holdout transactions in rings of 3+ entities that include prior fraud` +
+      (SOURCE.includes("sample") ? " (synthetic development sample, not results)" : "") +
+      `. From [\`server/scripts/ringEval.ts\`](server/scripts/ringEval.ts).`,
+    "",
+    "| Supernode cap | Largest ring | Flagged transactions | Fraud rate when flagged | Lift over baseline |",
+    "|---|---|---|---|---|",
+    ...[uncapped, capped].map(
+      (r) =>
+        `| ${r.cap ?? "none"} | ${r.largest.toLocaleString()} | ${r.risky.n.toLocaleString()} | ${pct(rate(r.risky))} | ${lift(r.risky, r.all).toFixed(1)}x |`,
+    ),
+  ].join("\n"),
+  README,
+);
 console.log(lines.join("\n"));
 for (const r of results) console.log(`cap ${r.cap ?? "none"}: ${r.ms.toFixed(0)} ms, ${r.rebuilds} rebuilds`);

@@ -1,0 +1,38 @@
+# Write-up, demo script and resume bullets
+
+Drafts. Every bracket is filled only from a measured number in [results.md](results.md) or [load.md](load.md) after the real IEEE-CIS run. Delete any line that cannot be reproduced.
+
+## Post draft: "What 590K real transactions taught me about fraud rings"
+
+**The setup.** I built a real-time fraud engine on the IEEE-CIS dataset: about 590,000 anonymized e-commerce transactions from Vesta, [fraud rate]% fraud. Each transaction gets approve, review or decline in [p95] ms, with reasons.
+
+**Lesson 1: the "customer" is a hypothesis.** The dataset has no customer id. Combining card1, the billing region and the card's first-use day (TransactionDT minus D1) gives a key whose labels agree [label consistency]% of the time, against [card1-only consistency]% for card1 alone. I treated that as a hypothesis and tested it, rather than assuming it.
+
+**Lesson 2: one shared value can merge everyone.** Linking cards that share a device looks like ring detection until "Windows 10 / Chrome" joins [largest uncapped ring] cards into one ring. Capping node degree at 50 and rebuilding union-find without the cut nodes took ring lift from [uncapped lift]x to [capped lift]x on the holdout.
+
+**Lesson 3: the labels flatter the blocklist.** After a chargeback, the competition labeled the card's later transactions as fraud. A blocklist of training-period fraud therefore looks brilliant. I delayed every label by seven days in event time and still say plainly how much of the win comes from the labeling rule.
+
+**Lesson 4: decide in dollars.** At $5 per review and a 10% margin, the threshold that maximizes net dollars was review ≥ [review t], decline ≥ [decline t]. Rules alone saved $[rules net]; rules plus the model saved $[both net] at the same analyst workload.
+
+**What I would do next.** [one or two honest next steps]
+
+## Demo video outline (2–3 minutes)
+
+1. The problem (20 s): card-not-present fraud, the cost of both kinds of mistake, the dollar framing.
+2. One transaction end to end (60 s): send a request, show the decision and reasons, resend it with the same key and get the identical stored answer.
+3. The ring explorer (40 s): open a review case, then its ring in two clicks; show a supernode being excluded.
+4. The results (40 s): the README table (rules only, model only, both), ring lift with and without the cap, latency.
+
+## Resume bullets (fill only with measured values)
+
+- Built a real-time fraud-scoring API in TypeScript/Fastify on 590K real anonymized e-commerce transactions (IEEE-CIS/Vesta), scoring at [X] ms p95 and [N] req/s with idempotent, exactly-once decisions
+- Implemented a Bloom-filter blocklist, sliding-window velocity rules and union-find identity rings with supernode capping; risky rings showed [Y]x the baseline fraud rate on a time-based holdout
+- Trained LightGBM served via ONNX in Node, raising recall from [A]% (rules only) to [B]% at 1% FPR and saving $[Z] net on the holdout under stated review-cost and margin assumptions
+
+## Interview notes
+
+- Time split vs random split: random would let a card's future fraud train the model that scores its past, inflating every metric.
+- Blocklist strength: partly the labeling rule; show the seven-day label delay and the "prior fraud on another entity only" ring column.
+- Parallel retries: the first request wins `SET NX`; the others wait for the stored body or get 409 if it is still computing; a different body under the same key gets 422.
+- Training-serving skew: the entity-key parity test (Python vs TypeScript) and the ONNX parity test (LightGBM vs onnxruntime-node), both on 1,000 rows in CI.
+- Scaling to 10K TPS: shard entities by key hash so each instance owns its windows and ring partition, move idempotency to a Redis cluster, batch the PostgreSQL writes, and rebuild a shard from the last 24 h on restart.
