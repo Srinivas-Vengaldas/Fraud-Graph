@@ -1,0 +1,56 @@
+{
+  "features": [
+    "card_tx_1h",
+    "card_tx_24h",
+    "card_amt_1h",
+    "card_amt_24h",
+    "device_tx_1h",
+    "device_tx_24h",
+    "device_amt_1h",
+    "device_amt_24h",
+    "device_cards_24h",
+    "ring_size",
+    "ring_fraud_entities",
+    "ring_fraud_others",
+    "blocklist_card",
+    "blocklist_device",
+    "has_device",
+    "device_generic",
+    "amt_share_card_24h",
+    "TransactionAmt",
+    "addr1",
+    "C1",
+    "C2",
+    "C13",
+    "C14",
+    "D1",
+    "D2",
+    "D4",
+    "D10",
+    "D15",
+    "ProductCD",
+    "card4",
+    "card6"
+  ],
+  "categorical": {
+    "ProductCD": [
+      "C",
+      "H",
+      "R",
+      "S",
+      "W"
+    ],
+    "card4": [
+      "american express",
+      "discover",
+      "mastercard",
+      "visa"
+    ],
+    "card6": [
+      "credit",
+      "debit"
+    ]
+  },
+  "missing_category": -1,
+  "note": "categories are coded by their index in the list; unknown or missing -> -1"
+}

@@ -69,3 +69,7 @@ evaluate:        ## holdout PR-AUC, recall at 1% FPR, top-k precision -> docs/re
 
 costs:           ## cost-based thresholds, cost curve chart -> docs/results.md and README
 	$(PY) ml/costs.py
+
+onnx:            ## export ONNX + refresh the Node parity fixture
+	$(PY) ml/export_onnx.py
+	cd server && npx vitest run test/modelParity.test.ts && npx tsx scripts/benchModel.ts ../ml/artifacts

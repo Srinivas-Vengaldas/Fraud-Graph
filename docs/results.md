@@ -65,3 +65,13 @@ net = fraud $ blocked − reviews × $5 − good-customer $ declined × margin. 
 
 ![Cost curve](img/cost_curve.png)
 <!-- costs:end -->
+
+<!-- model-latency:start -->
+## Model latency (CPU, model only)
+
+Measured by [`server/scripts/benchModel.ts`](../server/scripts/benchModel.ts) on 2026-10-14, Apple M1 (8 cores), darwin: 5,000 single-row onnxruntime-node calls after warm-up, 31 features.
+
+| p50 | p95 | p99 |
+|---|---|---|
+| 0.057 ms | 0.067 ms | 0.079 ms |
+<!-- model-latency:end -->

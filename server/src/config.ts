@@ -17,7 +17,10 @@ export const config = {
   idempotencyTtlSec: Number(process.env.IDEMPOTENCY_TTL_SEC ?? 24 * 3600),
   // Ring graph: nodes with more distinct neighbors than this are cut. "none" disables the cap.
   degreeCap: process.env.DEGREE_CAP === "none" ? null : Number(process.env.DEGREE_CAP ?? 50),
-  policyMode: (process.env.POLICY_MODE ?? "rules") as "rules" | "model" | "rules+model",
-  reviewThreshold: Number(process.env.REVIEW_THRESHOLD ?? 0.5),
-  declineThreshold: Number(process.env.DECLINE_THRESHOLD ?? 0.9),
+  // Default: "rules+model" when a model is found in modelDir, otherwise "rules".
+  policyMode: process.env.POLICY_MODE as "rules" | "model" | "rules+model" | undefined,
+  // Thresholds default to ml/artifacts/thresholds.json (chosen by ml/costs.py).
+  reviewThreshold: process.env.REVIEW_THRESHOLD ? Number(process.env.REVIEW_THRESHOLD) : undefined,
+  declineThreshold: process.env.DECLINE_THRESHOLD ? Number(process.env.DECLINE_THRESHOLD) : undefined,
+  modelDir: process.env.MODEL_DIR ?? new URL("../../ml/artifacts", import.meta.url).pathname,
 };
