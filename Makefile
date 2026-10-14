@@ -36,3 +36,7 @@ replay-day:      ## replay one day (DAY=1) end to end
 reset-state:     ## wipe decisions and idempotency keys (keeps schema and blocklist)
 	docker compose exec -T db psql -U $${PG_USER:-fraudgraph} -d $${PG_DB:-fraudgraph} -c "TRUNCATE features, decisions, transactions"
 	docker compose exec -T redis redis-cli FLUSHDB
+
+entities:        ## entity-key validation table + parity fixture
+	$(PY) prep/entity_check.py
+	$(PY) prep/entities.py
