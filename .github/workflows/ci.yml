@@ -1,0 +1,40 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: fraudgraph
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: fraudgraph
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U fraudgraph" --health-interval 5s --health-timeout 3s --health-retries 10
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      DATABASE_URL: postgres://fraudgraph:ci-only-password@localhost:5432/fraudgraph
+      REDIS_URL: redis://localhost:6379
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      - name: Migrations from scratch
+        run: npm run migrate
