@@ -38,3 +38,5 @@ jobs:
       - run: npm ci
       - name: Migrations from scratch
         run: npm run migrate
+      - run: npm run typecheck
+      - run: npm test
