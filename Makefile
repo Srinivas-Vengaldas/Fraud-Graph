@@ -34,7 +34,7 @@ replay-day:      ## replay one day (DAY=1) end to end
 	$(PY) replay/replay.py --start-day $(or $(DAY),1) --end-day $$(( $(or $(DAY),1) + 1 ))
 
 reset-state:     ## wipe decisions and idempotency keys (keeps schema and blocklist)
-	docker compose exec -T db psql -U $${PG_USER:-fraudgraph} -d $${PG_DB:-fraudgraph} -c "TRUNCATE features, decisions, transactions"
+	docker compose exec -T db psql -U $${PG_USER:-fraudgraph} -d $${PG_DB:-fraudgraph} -c "TRUNCATE reviews, features, decisions, transactions"
 	docker compose exec -T redis redis-cli FLUSHDB
 
 entities:        ## entity-key validation table + parity fixture
@@ -46,3 +46,14 @@ events:
 
 rings: events     ## ring lift with and without the supernode cap -> docs/results.md
 	cd server && npx tsx scripts/ringEval.ts
+
+blocklist:
+	$(PY) prep/build_blocklist.py
+
+replay-all:      ## train, gap, holdout in time order (API must be running)
+	$(PY) replay/replay.py --split train
+	$(PY) replay/replay.py --split gap
+	$(PY) replay/replay.py --split holdout
+
+baseline:        ## rules-only holdout metrics from stored decisions -> docs/results.md
+	$(PY) ml/evaluate_decisions.py --part holdout --section baseline --title "Rules-only baseline"

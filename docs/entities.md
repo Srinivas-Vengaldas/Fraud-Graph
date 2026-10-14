@@ -6,23 +6,23 @@ Label consistency: among entities with 2+ transactions, the share whose transact
 
 | Key | Entities | Tx per entity (mean / p99) | Entities with 2+ tx | Label consistency | Fraud purity |
 |---|---|---|---|---|---|
-| card1 | 12,089 | 5.13 / 15 | 92.7% | 94.9% | 43.7% |
-| card1|addr1 | 20,549 | 3.02 / 7 | 86.1% | 99.3% | 92.1% |
-| card_entity (card1|addr1|birth day) | 20,956 | 2.96 / 7 | 84.9% | 99.4% | 93.7% |
+| card1 | 12,087 | 5.33 / 17 | 92.6% | 94.8% | 40.6% |
+| card1|addr1 | 20,557 | 3.13 / 8 | 86.5% | 99.2% | 89.6% |
+| card_entity (card1|addr1|birth day) | 20,990 | 3.07 / 8 | 85.2% | 99.3% | 91.5% |
 
 ## Device entities linked to the most card entities
 
-1,687 device entities; 6 exceed a degree cap of 50.
+1,566 device entities; 6 exceed a degree cap of 50.
 
 | Device entity | Distinct card entities |
 |---|---|
-| `Trident/7.0|Windows 7|ie 11.0 for desktop|1366x768` | 604 |
-| `iOS Device|iOS 11.1.2|mobile safari 11.0|1334x750` | 586 |
-| `Windows|Windows 7|chrome 63.0|1366x768` | 576 |
-| `MacOS|Mac OS X 10_12_6|safari generic|2560x1600` | 562 |
-| `Windows|Windows 10|chrome 63.0|1920x1080` | 556 |
-| `iOS Device|iOS 11.2.1|mobile safari 11.0|2208x1242` | 538 |
-| `SM-J217F Build/MMB29K|Android 6.0.1|chrome 63.0 for android|1440x1920` | 24 |
-| `SM-J378F Build/R16NW|Android 8.0.0|chrome 60.0 for android|720x1280` | 21 |
-| `SM-N836F Build/MMB29K|Android 7.0|chrome 64.0 for android|1080x2560` | 21 |
-| `SM-J617F Build/MMB29K|Android 6.0.1|chrome 63.0 for android|720x1920` | 21 |
+| `Trident/7.0|Windows 7|ie 11.0 for desktop|1366x768` | 588 |
+| `Windows|Windows 10|chrome 63.0|1920x1080` | 584 |
+| `iOS Device|iOS 11.2.1|mobile safari 11.0|2208x1242` | 568 |
+| `iOS Device|iOS 11.1.2|mobile safari 11.0|1334x750` | 549 |
+| `MacOS|Mac OS X 10_12_6|safari generic|2560x1600` | 540 |
+| `Windows|Windows 7|chrome 63.0|1366x768` | 525 |
+| `SM-J311W Build/MMB29K|Android 8.0.0|chrome 64.0 for android|1440x1920` | 24 |
+| `SM-G587F Build/R16NW|Android 8.0.0|chrome 61.0 for android|720x2560` | 23 |
+| `SM-A664W Build/MMB29K|Android 6.0.1|chrome 61.0 for android|720x2560` | 22 |
+| `SM-J332F Build/NRD90M|Android 6.0.1|chrome 60.0 for android|720x1920` | 21 |

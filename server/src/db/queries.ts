@@ -1,5 +1,6 @@
 import type pg from "pg";
 import type { Decision, Transaction } from "../api/schemas.js";
+import type { ReviewRow } from "../api/score.js";
 
 const int = (v: number | null | undefined) => (v === null || v === undefined ? null : Math.trunc(v));
 
@@ -8,6 +9,7 @@ export async function saveScored(
   tx: Transaction,
   decision: Decision,
   features: Record<string, number | null> | null,
+  review: ReviewRow | null = null,
 ): Promise<void> {
   const client = await pool.connect();
   try {
@@ -35,6 +37,13 @@ export async function saveScored(
         `INSERT INTO features (transaction_id, features, model_version) VALUES ($1,$2,$3)
          ON CONFLICT (transaction_id) DO NOTHING`,
         [tx.TransactionID, JSON.stringify(features), decision.model_version],
+      );
+    }
+    if (review) {
+      await client.query(
+        `INSERT INTO reviews (transaction_id, score, reasons, card_entity, device_entity) VALUES ($1,$2,$3,$4,$5)
+         ON CONFLICT (transaction_id) DO NOTHING`,
+        [review.transaction_id, review.score, JSON.stringify(review.reasons), review.card_entity, review.device_entity],
       );
     }
     await client.query("COMMIT");

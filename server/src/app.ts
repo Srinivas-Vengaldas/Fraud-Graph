@@ -2,13 +2,16 @@ import Fastify, { type FastifyInstance } from "fastify";
 import type { Redis } from "ioredis";
 import type pg from "pg";
 import { IdempotencyStore } from "./api/idempotency.js";
+import { registerReviewRoutes } from "./api/reviews.js";
 import { placeholderScorer, registerScoreRoutes, type Scorer } from "./api/score.js";
+import type { RiskEngine } from "./decision/engine.js";
 import { createMetrics, type Metrics } from "./metrics.js";
 
 export interface AppDeps {
   pool: pg.Pool;
   redis: Redis;
   scorer?: Scorer;
+  engine?: RiskEngine; // when given, it is the scorer and the review routes are enabled
   metrics?: Metrics;
   idempotencyTtlSec?: number;
   logger?: boolean;
@@ -34,6 +37,8 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     return metrics.registry.metrics();
   });
 
-  registerScoreRoutes(app, { pool: deps.pool, idempotency, scorer: deps.scorer ?? placeholderScorer, metrics });
+  const scorer = deps.engine ?? deps.scorer ?? placeholderScorer;
+  registerScoreRoutes(app, { pool: deps.pool, idempotency, scorer, metrics });
+  if (deps.engine) registerReviewRoutes(app, deps.engine);
   return app;
 }

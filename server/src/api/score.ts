@@ -11,6 +11,16 @@ export interface ScoreResult {
   reasons: string[];
   model_version: string;
   features: Record<string, number | null> | null;
+  review?: ReviewRow | null;
+  onCommit?: () => void; // runs after the decision is durably stored
+}
+
+export interface ReviewRow {
+  transaction_id: number;
+  score: number;
+  reasons: string[];
+  card_entity: string;
+  device_entity: string | null;
 }
 
 export interface Scorer {
@@ -63,7 +73,8 @@ export function registerScoreRoutes(app: FastifyInstance, deps: ScoreRouteDeps):
           latency_ms: 0,
         };
         decision.latency_ms = Math.round((performance.now() - t0) * 1000) / 1000;
-        await saveScored(deps.pool, tx, decision, r.features);
+        await saveScored(deps.pool, tx, decision, r.features, r.review ?? null);
+        r.onCommit?.();
         deps.metrics.scoreLatency.observe(performance.now() - t0);
         deps.metrics.decisions.inc({ verdict: decision.verdict });
         return decision;

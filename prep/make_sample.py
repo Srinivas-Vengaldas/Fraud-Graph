@@ -96,38 +96,14 @@ def generate(n_customers: int, seed: int) -> tuple[pd.DataFrame, pd.DataFrame]:
             ident[len(rows)] = device
         rows.append(r)
 
-    # Ordinary customers, some later taken over.
-    for _ in range(n_customers):
-        card = new_card(rng)
-        first_day = float(rng.integers(-400, N_DAYS - 5))
-        email = rng.choice(EMAILS, p=EMAIL_P)
-        has_device = rng.random() < 0.25
-        if has_device:
-            device = GENERIC_DEVICES[rng.integers(len(GENERIC_DEVICES))] if rng.random() < 0.7 else rare_device(rng)
-        else:
-            device = None
-        n = 1 + rng.poisson(2.0)
-        start = max(first_day, 0) + 1
-        times = np.sort(rng.uniform(start * DAY, N_DAYS * DAY, size=n))
-        takeover_at = None
-        if rng.random() < 0.006 and n >= 2:
-            takeover_at = times[rng.integers(1, n)]
-        for i, t in enumerate(times):
-            fraud = int(takeover_at is not None and t >= takeover_at)
-            amt = rng.lognormal(4.0, 0.9) * (2.2 if fraud else 1.0)
-            prod = rng.choice(PRODUCTS, p=PRODUCT_P)
-            emit(card, first_day, t, amt, email, device, fraud, prod, i)
-            if fraud and rng.random() < 0.6:  # takeover bursts
-                for j in range(int(rng.integers(1, 4))):
-                    emit(card, first_day, t + rng.uniform(60, 3 * 3600), rng.lognormal(5.0, 0.6),
-                         email, device, 1, prod, i + j + 1)
-
     # Fraud rings: waves of fresh cards reusing the same one or two rare devices.
     # A ring comes back weeks later with new cards but the same devices, which is
     # what lets prior fraud on a device flag the next wave.
+    ring_devices: list[tuple] = []
     n_rings = max(1, n_customers // 220)
     for _ in range(n_rings):
         devices = [rare_device(rng) for _ in range(int(rng.integers(1, 3)))]
+        ring_devices += devices
         ring_email = rng.choice(["anonymous.com", "gmail.com", "hotmail.com", "outlook.com"])
         for _ in range(int(rng.integers(1, 4))):
             start_day = float(rng.uniform(1, N_DAYS - 3))
@@ -137,8 +113,50 @@ def generate(n_customers: int, seed: int) -> tuple[pd.DataFrame, pd.DataFrame]:
                 for k in range(int(rng.integers(1, 5))):
                     t = (start_day + rng.uniform(0, 2.5)) * DAY
                     prod = rng.choice(["C", "W", "H"], p=[0.5, 0.35, 0.15])
-                    emit(card, first_day, t, rng.lognormal(5.2, 0.7), ring_email,
+                    emit(card, first_day, t, rng.lognormal(4.8, 0.9), ring_email,
                          devices[rng.integers(len(devices))], 1, prod, k)
+
+    # Ordinary customers. Noise that makes the rules imperfect, as in real data:
+    #   households sharing one rare device, shopping sprees (bursts of legit
+    #   purchases), and second-hand phones that once belonged to a ring.
+    household: tuple | None = None
+    household_left = 0
+    for _ in range(n_customers):
+        card = new_card(rng)
+        first_day = float(rng.integers(-400, N_DAYS - 5))
+        email = rng.choice(EMAILS, p=EMAIL_P)
+        device = None
+        if household_left > 0:
+            device, household_left = household, household_left - 1
+        elif rng.random() < 0.25:
+            u = rng.random()
+            if u < 0.68:
+                device = GENERIC_DEVICES[rng.integers(len(GENERIC_DEVICES))]
+            elif u < 0.71 and ring_devices:
+                device = ring_devices[rng.integers(len(ring_devices))]  # second-hand ring phone
+            else:
+                device = rare_device(rng)
+                if rng.random() < 0.15:
+                    household, household_left = device, int(rng.integers(1, 4))
+        n = 1 + rng.poisson(2.0)
+        start = max(first_day, 0) + 1
+        times = list(np.sort(rng.uniform(start * DAY, N_DAYS * DAY, size=n)))
+        if rng.random() < 0.03:  # shopping spree
+            t0 = times[-1]
+            times += [t0 + rng.uniform(60, 3000) for _ in range(int(rng.integers(3, 7)))]
+            times.sort()
+        takeover_at = None
+        if rng.random() < 0.008 and len(times) >= 2:
+            takeover_at = times[rng.integers(1, len(times))]
+        for i, t in enumerate(times):
+            fraud = int(takeover_at is not None and t >= takeover_at)
+            amt = rng.lognormal(4.0, 0.9) * (1.6 if fraud else 1.0)
+            prod = rng.choice(PRODUCTS, p=PRODUCT_P) if not fraud else rng.choice(["W", "C", "H"], p=[0.6, 0.3, 0.1])
+            emit(card, first_day, t, amt, email, device, fraud, prod, i)
+            if fraud and rng.random() < 0.5:  # takeover bursts
+                for j in range(int(rng.integers(1, 4))):
+                    emit(card, first_day, t + rng.uniform(60, 3 * 3600), rng.lognormal(4.6, 0.8),
+                         email, device, 1, prod, i + j + 1)
 
     df = pd.DataFrame(rows)
     order = np.argsort(df["TransactionDT"].to_numpy(), kind="stable")
