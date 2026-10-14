@@ -61,8 +61,9 @@ export class MinHeap<T> {
     const keep = this.a.filter((e) => !pred(e.item));
     const removed = this.a.length - keep.length;
     if (removed > 0) {
-      this.a.length = 0;
-      this.a.push(...keep);
+      // Copy element by element: spreading a large array into push() overflows the call stack.
+      this.a.length = keep.length;
+      for (let i = 0; i < keep.length; i++) this.a[i] = keep[i]!;
       for (let i = (this.a.length >> 1) - 1; i >= 0; i--) this.down(i);
     }
     return removed;

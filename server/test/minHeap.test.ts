@@ -32,6 +32,14 @@ describe("MinHeap", () => {
     expect(h.peekMany(10)).toEqual([0, 1, 2, 3, 4, 5]);
   });
 
+  it("removeWhere works on a large heap (no call-stack overflow)", () => {
+    const h = new MinHeap<number>();
+    for (let i = 0; i < 300_000; i++) h.push(i, i);
+    expect(h.removeWhere((x) => x === 5)).toBe(1);
+    expect(h.size).toBe(299_999);
+    expect(h.peek()).toBe(0);
+  });
+
   it("removeWhere keeps the heap valid", () => {
     const h = new MinHeap<number>();
     for (let i = 0; i < 100; i++) h.push(i, 100 - i);

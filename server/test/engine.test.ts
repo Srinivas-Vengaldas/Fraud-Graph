@@ -100,7 +100,8 @@ describe("RiskEngine through the API", () => {
     expect(ring.body.ring.ring_size).toBe(4);
 
     await request(base).post(`/v1/reviews/${top!.transaction_id}`).send({ label: "maybe" }).expect(400);
-    const res = await request(base).post(`/v1/reviews/${top!.transaction_id}`).send({ label: "fraud" }).expect(200);
+    const res = await request(base).post(`/v1/reviews/${top!.transaction_id}`).send({ label: "fraud" });
+    expect(res.status).toBe(200);
     expect(res.body.label).toBe("fraud");
     await request(base).post(`/v1/reviews/${top!.transaction_id}`).send({ label: "fraud" }).expect(404);
     const hits = await engine.blocklist.check([{ type: "card", key: top!.card_entity }]);
