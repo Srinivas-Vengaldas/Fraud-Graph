@@ -66,3 +66,6 @@ train:           ## LightGBM on the training period (early stop on its last 15%)
 
 evaluate:        ## holdout PR-AUC, recall at 1% FPR, top-k precision -> docs/results.md
 	$(PY) ml/evaluate.py
+
+costs:           ## cost-based thresholds, cost curve chart -> docs/results.md and README
+	$(PY) ml/costs.py
