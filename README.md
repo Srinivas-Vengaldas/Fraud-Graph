@@ -36,9 +36,9 @@ Holdout, same analyst capacity for each policy (2,371 reviews, 2% of volume). Fr
 
 | Policy | Reviews / declines | Recall | False-positive rate | Fraud $ stopped | Good-customer $ declined | Net $ |
 |---|---|---|---|---|---|---|
-| Rules only | 2,371 / 1,780 | 23.7% | 2.78% | $128,651 | $76,817 | $109,115 |
+| Rules only | 2,371 / 0 | 21.4% | 1.31% | $117,622 | $0 | $105,767 |
 | Model only | 2,371 / 638 | 51.0% | 0.81% | $233,800 | $2,876 | $221,658 |
-| Rules + model | 2,371 / 2,299 | 55.1% | 2.12% | $239,937 | $79,693 | $220,113 |
+| Rules + model | 2,371 / 638 | 49.7% | 0.86% | $219,114 | $2,876 | $206,971 |
 <!-- results-table:end -->
 
 ### Identity rings

@@ -18,7 +18,11 @@ const model = existsSync(modelPath)
   ? await OnnxModel.load(modelPath, `${config.modelDir}/feature_spec.json`, `lgbm@${trainedAt}`)
   : null;
 const saved = existsSync(`${config.modelDir}/thresholds.json`)
-  ? (JSON.parse(readFileSync(`${config.modelDir}/thresholds.json`, "utf8")) as { review_threshold: number; decline_threshold: number })
+  ? (JSON.parse(readFileSync(`${config.modelDir}/thresholds.json`, "utf8")) as {
+      review_threshold: number;
+      decline_threshold: number;
+      analyst_capacity_share?: number;
+    })
   : null;
 const policy: Policy = {
   mode: config.policyMode ?? (model ? "rules+model" : "rules"),
@@ -26,14 +30,16 @@ const policy: Policy = {
   declineThreshold: config.declineThreshold ?? saved?.decline_threshold ?? 0.9,
 };
 
-const engine = await RiskEngine.create(pool, { degreeCap: config.degreeCap, policy, model, log });
+const reviewCapacityShare = config.reviewCapacityShare === undefined ? (saved?.analyst_capacity_share ?? null) : config.reviewCapacityShare;
+const engine = await RiskEngine.create(pool, { degreeCap: config.degreeCap, policy, model, reviewCapacityShare, log });
 const t0 = performance.now();
 const warmed = await engine.warmUp(pool);
 log(`warm-up: rebuilt velocity windows and ring graph from ${warmed} stored transactions in ${(performance.now() - t0).toFixed(0)} ms`);
 log(
   `engine ready: ${engine.blocklist.size} blocklist entries, ${engine.reviews.size} open reviews, ` +
     `degree cap ${config.degreeCap ?? "none"}, policy ${policy.mode} (review >= ${policy.reviewThreshold.toFixed(3)}, ` +
-    `decline >= ${policy.declineThreshold.toFixed(3)}), model ${model ? model.version : "none"}`,
+    `decline >= ${policy.declineThreshold.toFixed(3)}), model ${model ? model.version : "none"}, ` +
+    `review capacity ${reviewCapacityShare === null ? "unlimited" : `${(reviewCapacityShare * 100).toFixed(1)}% of daily volume`}`,
 );
 
 const app = buildApp({ pool, redis, engine, idempotencyTtlSec: config.idempotencyTtlSec, logger: { level: process.env.LOG_LEVEL ?? "info" }, webDir: config.webDir });

@@ -33,10 +33,12 @@ const tx = (c: number, day: number, extra: Record<string, unknown> = {}) => {
 };
 
 describe("rules", () => {
-  it("approve with no signals, decline on a card blocklist hit, review on velocity", () => {
+  it("approve with no signals, review on a card blocklist hit (top rule score), review on velocity", () => {
     const quiet = { card_tx_1h: 1, card_tx_24h: 1, card_amt_1h: 10, card_amt_24h: 10, device_tx_1h: null, device_tx_24h: null, device_amt_1h: null, device_amt_24h: null, device_cards_24h: null };
     expect(applyRules(quiet, { ring_size: 1, ring_fraud_others: 0 }, []).verdict).toBe("approve");
-    expect(applyRules(quiet, { ring_size: 1, ring_fraud_others: 0 }, [{ entity_type: "card", entity_key: "k", reason: "r" }]).verdict).toBe("decline");
+    const hit = applyRules(quiet, { ring_size: 1, ring_fraud_others: 0 }, [{ entity_type: "card", entity_key: "k", reason: "r" }]);
+    expect(hit.verdict).toBe("review");
+    expect(hit.score).toBe(0.95);
     const busy = applyRules({ ...quiet, device_cards_24h: 7 }, { ring_size: 1, ring_fraud_others: 0 }, []);
     expect(busy.verdict).toBe("review");
     expect(busy.reasons).toEqual(["device linked to 7 card entities in 24 h"]);
@@ -70,7 +72,7 @@ describe("RiskEngine through the API", () => {
     const before = await score(tx(0, 5));
     expect(before.body.verdict).toBe("approve");
     const after = await score(tx(0, 11));
-    expect(after.body.verdict).toBe("decline");
+    expect(after.body.verdict).toBe("review");
     expect(after.body.reasons[0]).toContain("card entity on blocklist");
   });
 

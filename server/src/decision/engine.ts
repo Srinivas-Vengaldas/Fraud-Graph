@@ -6,6 +6,7 @@ import { node, RingGraph } from "../graph/rings.js";
 import { Blocklist, type BlocklistEntry, type BlocklistHit } from "../rules/blocklist.js";
 import { VelocityTracker, type VelocityFeatures } from "../rules/velocity.js";
 import { buildFeatures, type FeatureVector } from "./features.js";
+import { ReviewBudget } from "./reviewBudget.js";
 import { ReviewQueue } from "./reviewQueue.js";
 
 // Signals run cheapest first: blocklist (Bloom filter, then PostgreSQL on a hit),
@@ -61,10 +62,12 @@ export function applyRules(
 ): RuleOutcome {
   const decline: string[] = [];
   const review: string[] = [];
+  // Blocklist hits go to an analyst rather than straight to decline: on this data a
+  // blocklisted card entity is often a good customer again (the key is approximate).
   for (const h of hits) {
-    if (h.entity_type === "card") decline.push(`card entity on blocklist (${h.reason})`);
-    else review.push(`device on blocklist (${h.reason})`);
+    review.push(`${h.entity_type === "card" ? "card entity" : "device"} on blocklist (${h.reason})`);
   }
+  const blocklisted = hits.some((h) => h.entity_type === "card");
   if (ring.ring_size >= r.ringSize && ring.ring_fraud_others >= r.ringFraudOthers) {
     review.push(`identity ring of ${ring.ring_size} entities includes ${ring.ring_fraud_others} with prior fraud`);
   }
@@ -77,7 +80,10 @@ export function applyRules(
   if (vel.card_amt_24h >= r.cardAmt24h) review.push(`${money(vel.card_amt_24h)} on this card in 24 h`);
 
   if (decline.length > 0) return { verdict: "decline", reasons: [...decline, ...review], score: 1 };
-  if (review.length > 0) return { verdict: "review", reasons: review, score: Math.min(0.95, 0.5 + 0.15 * (review.length - 1)) };
+  if (review.length > 0) {
+    const score = blocklisted ? 0.95 : Math.min(0.9, 0.5 + 0.15 * (review.length - 1));
+    return { verdict: "review", reasons: review, score };
+  }
   return { verdict: "approve", reasons: [], score: 0 };
 }
 
@@ -108,6 +114,7 @@ export interface EngineOptions {
   rules?: RuleThresholds;
   policy?: Policy;
   model?: ModelScorer | null;
+  reviewCapacityShare?: number | null; // daily review capacity as a share of volume; null = unlimited
   log?: (msg: string) => void;
 }
 
@@ -118,6 +125,7 @@ export class RiskEngine implements Scorer {
   private nextMark = 0;
   policy: Policy;
   model: ModelScorer | null;
+  readonly budget: ReviewBudget | null;
 
   private constructor(
     readonly blocklist: Blocklist,
@@ -130,6 +138,7 @@ export class RiskEngine implements Scorer {
     });
     this.policy = opts.policy ?? DEFAULT_POLICY;
     this.model = opts.model ?? null;
+    this.budget = opts.reviewCapacityShare ? new ReviewBudget(opts.reviewCapacityShare) : null;
     // Prior fraud enters the ring graph only once its label exists in event time.
     this.pendingMarks = [...blocklist.entries].sort((a, b) => (a.effective_dt ?? -Infinity) - (b.effective_dt ?? -Infinity));
   }
@@ -217,10 +226,27 @@ export class RiskEngine implements Scorer {
     const modelScore = useModel ? await this.model!.score(features, tx) : null;
     const deviceIsGeneric = device !== null && this.rings.isSupernode(node("device", device));
     const rules = applyRules(vel, ring, hits, this.opts.rules, deviceIsGeneric);
-    const { verdict, reasons, score } = combine(rules, modelScore, this.policy);
+    const combined = combine(rules, modelScore, this.policy);
+    const { score } = combined;
+    let { verdict, reasons } = combined;
+
+    // Analyst capacity: a review the queue cannot take today is approved, and the reason is kept for audit.
+    this.budget?.observe(t);
+    let overCapacity = 0;
+    if (verdict === "review" && this.budget && !this.budget.admit(score)) {
+      verdict = "approve";
+      reasons = [`over daily review capacity; would have reviewed: ${reasons[0] ?? "risk score"}`];
+      overCapacity = 1;
+    }
 
     // Training reads these logs: always the full vector, plus what the rules alone decided.
-    const logged: FeatureVector = { ...features, rules_verdict: SEVERITY[rules.verdict], rules_score: rules.score, model_score: modelScore };
+    const logged: FeatureVector = {
+      ...features,
+      rules_verdict: SEVERITY[rules.verdict],
+      rules_score: rules.score,
+      model_score: modelScore,
+      review_over_capacity: overCapacity,
+    };
 
     const review =
       verdict === "review"

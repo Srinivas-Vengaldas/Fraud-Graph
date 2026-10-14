@@ -12,7 +12,7 @@ Drafts. Every bracket is filled only from a measured number in [results.md](resu
 
 **Lesson 3: the labels flatter the blocklist.** After a chargeback, the competition labeled the card's later transactions as fraud. A blocklist of training-period fraud therefore looks brilliant. I delayed every label by seven days in event time and still say plainly how much of the win comes from the labeling rule.
 
-**Lesson 4: decide in dollars, within what a team can do.** Left unconstrained, a $5 review cost makes it worth reviewing a quarter of all transactions, which no team can staff. Capping reviews at 2% of daily volume and auto-declines at 1%, the model alone caught 51.0% of fraud with a 0.81% false-positive rate and saved $221,658 on the holdout, against 23.7% and $109,115 for the rules at the same workload. The blocklist rules decline too many good customers: $76,817 of the $79,693 wrongly declined comes from them.
+**Lesson 4: decide in dollars, within what a team can do.** Left unconstrained, a $5 review cost makes it worth reviewing a quarter of all transactions, which no team can staff. With reviews capped at 2% of daily volume and auto-declines at 1%, the model alone caught 51.0% of fraud at a 0.81% false-positive rate and saved $221,658 on the holdout, against 21.4% and $105,767 for the rules at the same workload. Run live, with the API spending its daily review budget on the highest scores it sees, the system caught 45.7% of fraud at a 0.77% false-positive rate and saved $190,013.
 
 **What I would do next.** [one or two honest next steps]
 

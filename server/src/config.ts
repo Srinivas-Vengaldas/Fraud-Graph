@@ -22,6 +22,9 @@ export const config = {
   // Thresholds default to ml/artifacts/thresholds.json (chosen by ml/costs.py).
   reviewThreshold: process.env.REVIEW_THRESHOLD ? Number(process.env.REVIEW_THRESHOLD) : undefined,
   declineThreshold: process.env.DECLINE_THRESHOLD ? Number(process.env.DECLINE_THRESHOLD) : undefined,
+  // Daily review capacity as a share of volume; defaults to thresholds.json, "none" = unlimited.
+  reviewCapacityShare:
+    process.env.REVIEW_CAPACITY_SHARE === "none" ? null : process.env.REVIEW_CAPACITY_SHARE ? Number(process.env.REVIEW_CAPACITY_SHARE) : undefined,
   webDir: process.env.WEB_DIR ?? new URL("../../web/dist", import.meta.url).pathname,
   modelDir: process.env.MODEL_DIR ?? new URL("../../ml/artifacts", import.meta.url).pathname,
 };
