@@ -27,6 +27,9 @@ const policy: Policy = {
 };
 
 const engine = await RiskEngine.create(pool, { degreeCap: config.degreeCap, policy, model, log });
+const t0 = performance.now();
+const warmed = await engine.warmUp(pool);
+log(`warm-up: rebuilt velocity windows and ring graph from ${warmed} stored transactions in ${(performance.now() - t0).toFixed(0)} ms`);
 log(
   `engine ready: ${engine.blocklist.size} blocklist entries, ${engine.reviews.size} open reviews, ` +
     `degree cap ${config.degreeCap ?? "none"}, policy ${policy.mode} (review >= ${policy.reviewThreshold.toFixed(3)}, ` +

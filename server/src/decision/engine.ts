@@ -152,6 +152,43 @@ export class RiskEngine implements Scorer {
     }
   }
 
+  /**
+   * Rebuild in-memory state (velocity windows, ring graph) from stored transactions,
+   * in event-time order, without re-scoring. Called at startup so a restart does
+   * not forget the graph. Returns the number of transactions applied.
+   */
+  async warmUp(pool: pg.Pool, batch = 20_000): Promise<number> {
+    let n = 0;
+    let lastDt = -1;
+    let lastId = -1;
+    for (;;) {
+      const { rows } = await pool.query<{
+        transaction_id: number; transaction_dt: number; amount: number; card1: number | null; addr1: number | null;
+        d1: number | null; device_info: string | null; id_30: string | null; id_31: string | null; id_33: string | null;
+      }>(
+        `SELECT transaction_id, transaction_dt, amount, card1, addr1, d1, device_info, id_30, id_31, id_33
+         FROM transactions WHERE (transaction_dt, transaction_id) > ($1, $2)
+         ORDER BY transaction_dt, transaction_id LIMIT $3`,
+        [lastDt, lastId, batch],
+      );
+      for (const r of rows) {
+        const tx = {
+          TransactionDT: r.transaction_dt, card1: r.card1, addr1: r.addr1, D1: r.d1,
+          DeviceInfo: r.device_info, id_30: r.id_30, id_31: r.id_31, id_33: r.id_33,
+        };
+        this.advanceTo(r.transaction_dt);
+        const card = cardEntity(tx);
+        const device = deviceEntity(tx);
+        this.velocity.observe(r.transaction_dt, r.amount, card, device);
+        this.rings.addTransaction(card, device);
+      }
+      n += rows.length;
+      if (rows.length < batch) return n;
+      lastDt = rows[rows.length - 1]!.transaction_dt;
+      lastId = rows[rows.length - 1]!.transaction_id;
+    }
+  }
+
   /** Analyst label: blocklist the case's entities from now on and mark them in the ring graph. */
   async labelFraud(card: string, device: string | null, reason: string): Promise<void> {
     await this.blocklist.add("card", card, reason);

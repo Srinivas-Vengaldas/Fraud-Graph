@@ -92,6 +92,22 @@ describe("RiskEngine through the API", () => {
     expect(rows[0].features.device_cards_24h).toBe(3);
   });
 
+  it("labels a case, blocklists its card, and serves its ring", async () => {
+    const [top] = engine.reviews.top(engine.reviews.size).filter((c) => ids.includes(c.transaction_id));
+    expect(top).toBeDefined();
+    const ring = await request(base).get(`/v1/rings/card/${encodeURIComponent(top!.card_entity)}?hops=2&limit=50`).expect(200);
+    expect(ring.body.nodes.length).toBeGreaterThanOrEqual(2);
+    expect(ring.body.ring.ring_size).toBe(4);
+
+    await request(base).post(`/v1/reviews/${top!.transaction_id}`).send({ label: "maybe" }).expect(400);
+    const res = await request(base).post(`/v1/reviews/${top!.transaction_id}`).send({ label: "fraud" }).expect(200);
+    expect(res.body.label).toBe("fraud");
+    await request(base).post(`/v1/reviews/${top!.transaction_id}`).send({ label: "fraud" }).expect(404);
+    const hits = await engine.blocklist.check([{ type: "card", key: top!.card_entity }]);
+    expect(hits).toHaveLength(1);
+    await pool.query("DELETE FROM blocklist WHERE entity_key = ANY($1)", [[top!.card_entity, top!.device_entity]]);
+  });
+
   it("flags card velocity with a readable reason", async () => {
     let last;
     for (let i = 0; i < 4; i++) last = await score(tx(3, 20 + i / 1000));

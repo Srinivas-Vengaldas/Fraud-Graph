@@ -77,3 +77,6 @@ onnx:            ## export ONNX + refresh the Node parity fixture
 lift:            ## rules vs model vs both at equal review volume (after replay-all with the model) -> README
 	$(PY) ml/lift.py
 	$(PY) ml/evaluate_decisions.py --part holdout --section deployed --title "Deployed policy (rules + model) from API decisions"
+
+web:             ## analyst UI dev server on :5173 (proxies the API on :3000)
+	cd web && npx vite
