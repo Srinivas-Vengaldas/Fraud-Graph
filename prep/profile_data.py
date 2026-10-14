@@ -24,7 +24,11 @@ USED_ID_COLS = ["DeviceType", "DeviceInfo", "id_30", "id_31", "id_33"]
 
 
 def load_raw(raw_dir: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
-    tx = pd.read_csv(raw_dir / "train_transaction.csv")
+    # Only the columns the profile reports: the real file has 394 columns (~0.7 GB).
+    header = pd.read_csv(raw_dir / "train_transaction.csv", nrows=0).columns
+    keep = [c for c in ["TransactionID", "isFraud", "TransactionDT"] + USED_TX_COLS if c in header]
+    tx = pd.read_csv(raw_dir / "train_transaction.csv", usecols=keep)
+    tx.attrs["n_columns"] = len(header)
     ident = pd.read_csv(raw_dir / "train_identity.csv")
     return tx, ident
 
@@ -40,7 +44,7 @@ def profile(tx: pd.DataFrame, ident: pd.DataFrame) -> dict:
         missing[c] = float(merged[c].isna().mean()) if c in merged else None
     return {
         "n_transactions": int(len(tx)),
-        "n_tx_columns": int(tx.shape[1]),
+        "n_tx_columns": int(tx.attrs.get("n_columns", tx.shape[1])),
         "n_identity": int(len(ident)),
         "n_id_columns": int(ident.shape[1]),
         "fraud_rate": float(tx["isFraud"].mean()),

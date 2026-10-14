@@ -4,15 +4,15 @@ Drafts. Every bracket is filled only from a measured number in [results.md](resu
 
 ## Post draft: "What 590K real transactions taught me about fraud rings"
 
-**The setup.** I built a real-time fraud engine on the IEEE-CIS dataset: about 590,000 anonymized e-commerce transactions from Vesta, [fraud rate]% fraud. Each transaction gets approve, review or decline in [p95] ms, with reasons.
+**The setup.** I built a real-time fraud engine on the IEEE-CIS dataset: about 590,000 anonymized e-commerce transactions from Vesta, 3.5% fraud. Each transaction gets approve, review or decline in [p95] ms, with reasons.
 
-**Lesson 1: the "customer" is a hypothesis.** The dataset has no customer id. Combining card1, the billing region and the card's first-use day (TransactionDT minus D1) gives a key whose labels agree [label consistency]% of the time, against [card1-only consistency]% for card1 alone. I treated that as a hypothesis and tested it, rather than assuming it.
+**Lesson 1: the "customer" is a hypothesis.** The dataset has no customer id. Combining card1, the billing region and the card's first-use day (TransactionDT minus D1) gives a key whose labels agree 96.6% of the time, against 84.8% for card1 alone. I treated that as a hypothesis and tested it, rather than assuming it.
 
-**Lesson 2: one shared value can merge everyone.** Linking cards that share a device looks like ring detection until "Windows 10 / Chrome" joins [largest uncapped ring] cards into one ring. Capping node degree at 50 and rebuilding union-find without the cut nodes took ring lift from [uncapped lift]x to [capped lift]x on the holdout.
+**Lesson 2: one shared value can merge everyone.** Linking cards that share a device looks like ring detection until generic device strings join 63,586 entities into one ring. Capping node degree at 50 and rebuilding union-find without the cut nodes took ring lift from 2.4x to 2.9x on the holdout, but a 22,598-entity ring survives: medium-degree devices chain together. A cap of 5 shrinks the largest ring to 918 and lifts it to 4.7x, at the cost of catching less fraud.
 
 **Lesson 3: the labels flatter the blocklist.** After a chargeback, the competition labeled the card's later transactions as fraud. A blocklist of training-period fraud therefore looks brilliant. I delayed every label by seven days in event time and still say plainly how much of the win comes from the labeling rule.
 
-**Lesson 4: decide in dollars.** At $5 per review and a 10% margin, the threshold that maximizes net dollars was review ≥ [review t], decline ≥ [decline t]. Rules alone saved $[rules net]; rules plus the model saved $[both net] at the same analyst workload.
+**Lesson 4: decide in dollars.** At $5 per review and a 10% margin, the threshold that maximizes net dollars was review ≥ 0.344, decline ≥ 0.928. At the same analyst workload, rules alone saved $152,206, rules plus the model $247,679, and the model alone $368,565: the hand-written rules crowd better cases out of the queue.
 
 **What I would do next.** [one or two honest next steps]
 
@@ -26,7 +26,7 @@ Drafts. Every bracket is filled only from a measured number in [results.md](resu
 ## Resume bullets (fill only with measured values)
 
 - Built a real-time fraud-scoring API in TypeScript/Fastify on 590K real anonymized e-commerce transactions (IEEE-CIS/Vesta), scoring at [X] ms p95 and [N] req/s with idempotent, exactly-once decisions
-- Implemented a Bloom-filter blocklist, sliding-window velocity rules and union-find identity rings with supernode capping; risky rings showed [Y]x the baseline fraud rate on a time-based holdout
+- Implemented a Bloom-filter blocklist, sliding-window velocity rules and union-find identity rings with supernode capping; risky rings showed 2.9x the baseline fraud rate on a time-based holdout
 - Trained LightGBM served via ONNX in Node, raising recall from [A]% (rules only) to [B]% at 1% FPR and saving $[Z] net on the holdout under stated review-cost and margin assumptions
 
 ## Interview notes

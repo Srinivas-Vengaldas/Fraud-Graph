@@ -8,7 +8,7 @@
 // Lift = fraud rate of holdout transactions in rings of size >= 3 with prior fraud
 //        / overall holdout fraud rate.
 //
-// Usage: npx tsx scripts/ringEval.ts [--cap 50]
+// Usage: npx tsx scripts/ringEval.ts [--caps 50,20,10,5]   (always also runs with no cap)
 import { createReadStream, readFileSync } from "node:fs";
 import { createInterface } from "node:readline";
 import { node, RingGraph } from "../src/graph/rings.js";
@@ -24,8 +24,8 @@ interface Event {
   device: string | null;
 }
 
-const capArg = process.argv.indexOf("--cap");
-const CAP = capArg > 0 ? Number(process.argv[capArg + 1]) : 50;
+const capsArg = process.argv.indexOf("--caps");
+const CAPS = (capsArg > 0 ? process.argv[capsArg + 1]! : "50,20,10,5").split(",").map(Number);
 const EVENTS = new URL("../../data/clean/events.jsonl", import.meta.url).pathname;
 const SOURCE = (() => {
   try {
@@ -75,7 +75,8 @@ async function run(cap: number | null) {
   return { cap, all, risky, riskyOthers, big, largest, supernodes: g.supernodeCount, rebuilds: g.rebuilds, ms: performance.now() - t0 };
 }
 
-const results = [await run(null), await run(CAP)];
+const results = [await run(null)];
+for (const c of CAPS) results.push(await run(c));
 const pct = (x: number) => `${(100 * x).toFixed(2)}%`;
 const rate = (t: Tally) => (t.n ? t.fraud / t.n : 0);
 const lift = (t: Tally, base: Tally) => (rate(base) ? rate(t) / rate(base) : 0);
@@ -101,10 +102,10 @@ for (const r of results) {
 lines.push(
   "",
   "Without the cap, generic device strings merge most device-bearing customers into one ring, so \"in a risky ring\" stops meaning anything. " +
+    "The API uses a cap of 50 (DEGREE_CAP); smaller caps are shown to describe the trade-off and were not chosen on this holdout. " +
     "The last column excludes the transaction's own card entity, separating the ring signal from a plain blocklist hit.",
 );
 upsertResultsSection("rings", lines.join("\n"));
-const [uncapped, capped] = results as [(typeof results)[0], (typeof results)[0]];
 upsertResultsSection(
   "rings-summary",
   [
@@ -114,7 +115,7 @@ upsertResultsSection(
     "",
     "| Supernode cap | Largest ring | Flagged transactions | Fraud rate when flagged | Lift over baseline |",
     "|---|---|---|---|---|",
-    ...[uncapped, capped].map(
+    ...results.map(
       (r) =>
         `| ${r.cap ?? "none"} | ${r.largest.toLocaleString()} | ${r.risky.n.toLocaleString()} | ${pct(rate(r.risky))} | ${lift(r.risky, r.all).toFixed(1)}x |`,
     ),
