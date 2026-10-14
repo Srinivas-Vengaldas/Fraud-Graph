@@ -57,3 +57,6 @@ replay-all:      ## train, gap, holdout in time order (API must be running)
 
 baseline:        ## rules-only holdout metrics from stored decisions -> docs/results.md
 	$(PY) ml/evaluate_decisions.py --part holdout --section baseline --title "Rules-only baseline"
+
+features:        ## export logged serving features (after replay-all)
+	$(PY) ml/export_features.py
