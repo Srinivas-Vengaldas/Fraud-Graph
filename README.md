@@ -15,6 +15,18 @@ Every incoming transaction gets an **approve / review / decline** decision withi
 
 All numbers are produced by scripts and collected in [docs/results.md](docs/results.md). Until the Kaggle data is downloaded they come from a synthetic development sample and are not results.
 
+### Rules vs model
+
+<!-- results-table:start -->
+Holdout, equal review volume (908 reviews) on the synthetic development sample (not results). From [`ml/lift.py`](ml/lift.py); details in [docs/results.md](docs/results.md).
+
+| Policy | Reviews / declines | Recall | False-positive rate | Fraud $ stopped | Good-customer $ declined | Net $ |
+|---|---|---|---|---|---|---|
+| Rules only | 908 / 27 | 70.6% | 5.17% | $48,660 | $0 | $44,120 |
+| Model only | 908 / 299 | 86.4% | 6.82% | $59,729 | $2,797 | $54,910 |
+| Rules + model | 908 / 318 | 80.6% | 7.13% | $57,266 | $2,797 | $52,446 |
+<!-- results-table:end -->
+
 <!-- operating-point:start -->
 ### Operating point (chosen by dollars)
 

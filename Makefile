@@ -73,3 +73,7 @@ costs:           ## cost-based thresholds, cost curve chart -> docs/results.md a
 onnx:            ## export ONNX + refresh the Node parity fixture
 	$(PY) ml/export_onnx.py
 	cd server && npx vitest run test/modelParity.test.ts && npx tsx scripts/benchModel.ts ../ml/artifacts
+
+lift:            ## rules vs model vs both at equal review volume (after replay-all with the model) -> README
+	$(PY) ml/lift.py
+	$(PY) ml/evaluate_decisions.py --part holdout --section deployed --title "Deployed policy (rules + model) from API decisions"
