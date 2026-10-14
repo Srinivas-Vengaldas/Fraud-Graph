@@ -60,3 +60,9 @@ baseline:        ## rules-only holdout metrics from stored decisions -> docs/res
 
 features:        ## export logged serving features (after replay-all)
 	$(PY) ml/export_features.py
+
+train:           ## LightGBM on the training period (early stop on its last 15%)
+	$(PY) ml/train.py
+
+evaluate:        ## holdout PR-AUC, recall at 1% FPR, top-k precision -> docs/results.md
+	$(PY) ml/evaluate.py
