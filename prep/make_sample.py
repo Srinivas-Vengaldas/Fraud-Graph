@@ -122,20 +122,23 @@ def generate(n_customers: int, seed: int) -> tuple[pd.DataFrame, pd.DataFrame]:
                     emit(card, first_day, t + rng.uniform(60, 3 * 3600), rng.lognormal(5.0, 0.6),
                          email, device, 1, prod, i + j + 1)
 
-    # Fraud rings: fresh cards sharing one or two rare devices.
-    n_rings = max(1, n_customers // 160)
+    # Fraud rings: waves of fresh cards reusing the same one or two rare devices.
+    # A ring comes back weeks later with new cards but the same devices, which is
+    # what lets prior fraud on a device flag the next wave.
+    n_rings = max(1, n_customers // 220)
     for _ in range(n_rings):
         devices = [rare_device(rng) for _ in range(int(rng.integers(1, 3)))]
         ring_email = rng.choice(["anonymous.com", "gmail.com", "hotmail.com", "outlook.com"])
-        start_day = float(rng.uniform(1, N_DAYS - 3))
-        for _ in range(int(rng.integers(2, 9))):
-            card = new_card(rng)
-            first_day = start_day - float(rng.integers(0, 3))
-            for k in range(int(rng.integers(1, 5))):
-                t = (start_day + rng.uniform(0, 2.5)) * DAY
-                prod = rng.choice(["C", "W", "H"], p=[0.5, 0.35, 0.15])
-                emit(card, first_day, t, rng.lognormal(5.2, 0.7), ring_email,
-                     devices[rng.integers(len(devices))], 1, prod, k)
+        for _ in range(int(rng.integers(1, 4))):
+            start_day = float(rng.uniform(1, N_DAYS - 3))
+            for _ in range(int(rng.integers(2, 7))):
+                card = new_card(rng)
+                first_day = start_day - float(rng.integers(0, 3))
+                for k in range(int(rng.integers(1, 5))):
+                    t = (start_day + rng.uniform(0, 2.5)) * DAY
+                    prod = rng.choice(["C", "W", "H"], p=[0.5, 0.35, 0.15])
+                    emit(card, first_day, t, rng.lognormal(5.2, 0.7), ring_email,
+                         devices[rng.integers(len(devices))], 1, prod, k)
 
     df = pd.DataFrame(rows)
     order = np.argsort(df["TransactionDT"].to_numpy(), kind="stable")

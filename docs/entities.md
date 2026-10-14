@@ -6,13 +6,13 @@ Label consistency: among entities with 2+ transactions, the share whose transact
 
 | Key | Entities | Tx per entity (mean / p99) | Entities with 2+ tx | Label consistency | Fraud purity |
 |---|---|---|---|---|---|
-| card1 | 12,079 | 5.12 / 15 | 92.6% | 95.2% | 44.3% |
-| card1|addr1 | 20,516 | 3.02 / 7 | 86.1% | 99.4% | 92.5% |
-| card_entity (card1|addr1|birth day) | 20,919 | 2.96 / 7 | 84.8% | 99.4% | 93.4% |
+| card1 | 12,089 | 5.13 / 15 | 92.7% | 94.9% | 43.7% |
+| card1|addr1 | 20,549 | 3.02 / 7 | 86.1% | 99.3% | 92.1% |
+| card_entity (card1|addr1|birth day) | 20,956 | 2.96 / 7 | 84.9% | 99.4% | 93.7% |
 
 ## Device entities linked to the most card entities
 
-1,753 device entities; 6 exceed a degree cap of 50.
+1,687 device entities; 6 exceed a degree cap of 50.
 
 | Device entity | Distinct card entities |
 |---|---|
@@ -22,7 +22,7 @@ Label consistency: among entities with 2+ transactions, the share whose transact
 | `MacOS|Mac OS X 10_12_6|safari generic|2560x1600` | 562 |
 | `Windows|Windows 10|chrome 63.0|1920x1080` | 556 |
 | `iOS Device|iOS 11.2.1|mobile safari 11.0|2208x1242` | 538 |
-| `SM-J289F Build/R16NW|Android 8.0.0|chrome 64.0 for android|720x1280` | 14 |
-| `SM-J295F Build/R16NW|Android 8.0.0|chrome 61.0 for android|1080x2560` | 14 |
-| `SM-N121U Build/MMB29K|Android 7.0|chrome 61.0 for android|720x2560` | 13 |
-| `SM-A682U Build/NRD90M|Android 7.0|chrome 63.0 for android|1080x1920` | 13 |
+| `SM-J217F Build/MMB29K|Android 6.0.1|chrome 63.0 for android|1440x1920` | 24 |
+| `SM-J378F Build/R16NW|Android 8.0.0|chrome 60.0 for android|720x1280` | 21 |
+| `SM-N836F Build/MMB29K|Android 7.0|chrome 64.0 for android|1080x2560` | 21 |
+| `SM-J617F Build/MMB29K|Android 6.0.1|chrome 63.0 for android|720x1920` | 21 |

@@ -40,3 +40,9 @@ reset-state:     ## wipe decisions and idempotency keys (keeps schema and blockl
 entities:        ## entity-key validation table + parity fixture
 	$(PY) prep/entity_check.py
 	$(PY) prep/entities.py
+
+events:
+	$(PY) prep/export_events.py
+
+rings: events     ## ring lift with and without the supernode cap -> docs/results.md
+	cd server && npx tsx scripts/ringEval.ts
