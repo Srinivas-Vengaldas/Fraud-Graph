@@ -17,3 +17,9 @@ profile:
 
 parquet:
 	$(PY) prep/to_parquet.py --raw-dir $(RAW) --out data/clean/train.parquet
+
+split:
+	$(PY) prep/split.py
+
+test-py:
+	$(PY) -m pytest -q tests/python

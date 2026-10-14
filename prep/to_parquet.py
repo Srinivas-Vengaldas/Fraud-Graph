@@ -36,6 +36,8 @@ def main() -> None:
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(out, index=False)
+    # Later stages stamp their docs with where the data came from.
+    out.with_name("source.txt").write_text(args.raw_dir + "\n")
     print(f"wrote {len(df):,} rows x {df.shape[1]} columns to {out} (CSV had {n_csv:,})")
 
 
