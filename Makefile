@@ -23,3 +23,16 @@ split:
 
 test-py:
 	$(PY) -m pytest -q tests/python
+
+migrate:
+	cd server && npm run migrate
+
+api:
+	cd server && npx tsx src/index.ts
+
+replay-day:      ## replay one day (DAY=1) end to end
+	$(PY) replay/replay.py --start-day $(or $(DAY),1) --end-day $$(( $(or $(DAY),1) + 1 ))
+
+reset-state:     ## wipe decisions and idempotency keys (keeps schema and blocklist)
+	docker compose exec -T db psql -U $${PG_USER:-fraudgraph} -d $${PG_DB:-fraudgraph} -c "TRUNCATE features, decisions, transactions"
+	docker compose exec -T redis redis-cli FLUSHDB
