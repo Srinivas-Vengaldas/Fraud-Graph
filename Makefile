@@ -86,3 +86,14 @@ load:            ## k6 at fixed concurrency against BASE_URL (default local API)
 	docker run --rm -v "$$PWD":/w -w /w -e BASE_URL=$(or $(BASE_URL),http://host.docker.internal:3000) \
 	  -e BODIES=/w/data/clean/k6_bodies.json -e VUS=$(or $(VUS),20) -e DURATION=$(or $(DURATION),60s) grafana/k6 run load/k6-score.js
 	docker compose exec -T db psql -U $${PG_USER:-fraudgraph} -d $${PG_DB:-fraudgraph} < load/cleanup.sql
+
+infra:           ## only Postgres and Redis (for running the API on the host)
+	docker compose up -d --wait db redis
+
+up:              ## whole stack: Postgres, Redis, API + UI on :3000
+	docker compose up -d --build --wait
+
+demo-seed:       ## replay history and one week of holdout into URL (default local)
+	$(PY) replay/replay.py --url $(or $(URL),http://localhost:3000) --split train --concurrency 4
+	$(PY) replay/replay.py --url $(or $(URL),http://localhost:3000) --split holdout \
+	  --end-day $$($(PY) -c "import json;print(json.load(open('data/clean/splits.json'))['cutoff_day']+7)")

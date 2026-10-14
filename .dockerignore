@@ -1,0 +1,9 @@
+**/node_modules
+**/dist
+data
+.venv
+.env
+.git
+**/__pycache__
+ml/artifacts/*.npy
+ml/artifacts/model.txt

@@ -36,7 +36,7 @@ log(
     `decline >= ${policy.declineThreshold.toFixed(3)}), model ${model ? model.version : "none"}`,
 );
 
-const app = buildApp({ pool, redis, engine, idempotencyTtlSec: config.idempotencyTtlSec, logger: { level: process.env.LOG_LEVEL ?? "info" } });
+const app = buildApp({ pool, redis, engine, idempotencyTtlSec: config.idempotencyTtlSec, logger: { level: process.env.LOG_LEVEL ?? "info" }, webDir: config.webDir });
 
 const shutdown = async () => {
   await app.close();

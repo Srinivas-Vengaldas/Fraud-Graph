@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import fastifyStatic from "@fastify/static";
 import Fastify, { type FastifyInstance } from "fastify";
 import type { Redis } from "ioredis";
 import type pg from "pg";
@@ -15,6 +17,7 @@ export interface AppDeps {
   metrics?: Metrics;
   idempotencyTtlSec?: number;
   logger?: boolean | { level: string };
+  webDir?: string; // built analyst UI (web/dist) served at / when present
 }
 
 export function buildApp(deps: AppDeps): FastifyInstance {
@@ -40,5 +43,8 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   const scorer = deps.engine ?? deps.scorer ?? placeholderScorer;
   registerScoreRoutes(app, { pool: deps.pool, idempotency, scorer, metrics });
   if (deps.engine) registerReviewRoutes(app, deps.engine);
+  if (deps.webDir && existsSync(deps.webDir)) {
+    void app.register(fastifyStatic, { root: deps.webDir });
+  }
   return app;
 }
