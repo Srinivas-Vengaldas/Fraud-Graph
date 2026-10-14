@@ -32,13 +32,13 @@ Every number is produced by a script and collected, with the script link, in [do
 ### Rules vs model
 
 <!-- results-table:start -->
-Holdout, equal review volume (14,401 reviews). From [`ml/lift.py`](ml/lift.py); details in [docs/results.md](docs/results.md).
+Holdout, same analyst capacity for each policy (2,371 reviews, 2% of volume). From [`ml/lift.py`](ml/lift.py); details in [docs/results.md](docs/results.md).
 
 | Policy | Reviews / declines | Recall | False-positive rate | Fraud $ stopped | Good-customer $ declined | Net $ |
 |---|---|---|---|---|---|---|
-| Rules only | 14,401 / 1,780 | 50.5% | 12.34% | $231,893 | $76,817 | $152,206 |
-| Model only | 14,401 / 2,814 | 80.2% | 12.19% | $449,458 | $88,877 | $368,565 |
-| Rules + model | 14,401 / 3,345 | 67.8% | 13.09% | $331,146 | $114,619 | $247,679 |
+| Rules only | 2,371 / 1,780 | 23.7% | 2.78% | $128,651 | $76,817 | $109,115 |
+| Model only | 2,371 / 638 | 51.0% | 0.81% | $233,800 | $2,876 | $221,658 |
+| Rules + model | 2,371 / 2,299 | 55.1% | 2.12% | $239,937 | $79,693 | $220,113 |
 <!-- results-table:end -->
 
 ### Identity rings
@@ -56,11 +56,11 @@ Holdout transactions in rings of 3+ entities that include prior fraud. From [`se
 <!-- rings-summary:end -->
 
 <!-- operating-point:start -->
-### Operating point (chosen by dollars)
+### Operating point (dollars, within analyst capacity)
 
-Review at model score ≥ 0.344, decline at ≥ 0.928, picked on the validation slice to maximize net dollars at $5 per review and 10% margin. On the holdout: net $378,883, recall 86.7%, false-positive rate 20.40%. Doubling the margin assumption is in [docs/results.md](docs/results.md). Produced by [`ml/costs.py`](ml/costs.py).
+Analysts can review 2% of daily transactions and at most 1% are auto-declined. Within that, review at model score ≥ 0.945 and decline at ≥ 0.990, picked on the validation slice to maximize net dollars at $5 per review and 10% margin. On the holdout: 40 reviews per day, recall 44.3%, false-positive rate 0.44%, net $184,464. Other capacities and a doubled margin are in [docs/results.md](docs/results.md). Produced by [`ml/costs.py`](ml/costs.py).
 
-![Net dollars vs review threshold](docs/img/cost_curve.png)
+![Net dollars vs analyst capacity](docs/img/cost_curve.png)
 <!-- operating-point:end -->
 
 ### Latency

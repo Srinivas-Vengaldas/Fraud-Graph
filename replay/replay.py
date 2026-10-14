@@ -33,9 +33,9 @@ DAY = 86_400
 # Exactly the fields the API schema accepts (see server/src/api/schemas.ts).
 API_FIELDS = [
     "TransactionID", "TransactionDT", "TransactionAmt", "ProductCD",
-    "card1", "card2", "card3", "card4", "card5", "card6", "addr1", "addr2",
-    "P_emaildomain", "R_emaildomain", "C1", "C2", "C13", "C14",
-    "D1", "D2", "D4", "D10", "D15",
+    "card1", "card2", "card3", "card4", "card5", "card6", "addr1", "addr2", "dist1", "dist2",
+    "P_emaildomain", "R_emaildomain",
+    *[f"C{i}" for i in range(1, 15)], *[f"D{i}" for i in range(1, 16)], *[f"M{i}" for i in range(1, 10)],
     "DeviceType", "DeviceInfo", "id_30", "id_31", "id_33",
 ]
 assert "isFraud" not in API_FIELDS

@@ -25,15 +25,30 @@ LOGGED = [
     "blocklist_card", "blocklist_device", "has_device", "device_generic", "amt_share_card_24h",
 ]
 # Raw request fields, passed through unchanged at serving time.
-RAW_NUMERIC = ["TransactionAmt", "addr1", "C1", "C2", "C13", "C14", "D1", "D2", "D4", "D10", "D15"]
-RAW_CATEGORICAL = ["ProductCD", "card4", "card6"]
+RAW_NUMERIC = (["TransactionAmt", "card1", "card2", "card3", "card5", "addr1", "addr2", "dist1", "dist2"]
+               + [f"C{i}" for i in range(1, 15)] + [f"D{i}" for i in range(1, 16)])
+RAW_CATEGORICAL = ["ProductCD", "card4", "card6", "P_emaildomain", "R_emaildomain", "DeviceType"] + [f"M{i}" for i in range(1, 10)]
+# Computed from raw request fields, identically in server/src/model/score.ts:derived().
+DERIVED = ["hour_of_day", "amt_cents", "card_birth_day", "email_match"]
+
+
+def add_derived(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    amt = df["TransactionAmt"].astype("float64")
+    df["hour_of_day"] = np.floor((df["TransactionDT"] % DAY) / 3600)
+    df["amt_cents"] = np.round((amt - np.floor(amt)) * 1000) / 1000
+    df["card_birth_day"] = np.floor(df["TransactionDT"] / DAY - df["D1"])
+    p, r = df["P_emaildomain"], df["R_emaildomain"]
+    df["email_match"] = np.where(p.isna() | r.isna(), np.nan, (p == r).astype(float))
+    return df
+
 
 ARTIFACTS = ROOT / "ml/artifacts"
 
 
 def build_spec(df: pd.DataFrame) -> dict:
     cats = {c: sorted(df[c].dropna().astype(str).unique().tolist()) for c in RAW_CATEGORICAL}
-    return {"features": LOGGED + RAW_NUMERIC + RAW_CATEGORICAL, "categorical": cats,
+    return {"features": LOGGED + RAW_NUMERIC + DERIVED + RAW_CATEGORICAL, "categorical": cats,
             "missing_category": -1, "note": "categories are coded by their index in the list; unknown or missing -> -1"}
 
 
@@ -53,6 +68,7 @@ def load_table(parquet: str = "data/clean/train.parquet", features: str = "data/
     raw = pd.read_parquet(ROOT / parquet, columns=["TransactionID", "TransactionDT", "isFraud"] + RAW_NUMERIC + RAW_CATEGORICAL)
     logged = pd.read_parquet(ROOT / features)
     df = raw.merge(logged[["TransactionID"] + LOGGED], on="TransactionID", how="inner")
+    df = add_derived(df)
     df["part"] = assign(df.TransactionDT, json.loads((ROOT / splits).read_text()))
     df["day"] = df.TransactionDT // DAY
     return df.sort_values(["TransactionDT", "TransactionID"]).reset_index(drop=True)

@@ -12,7 +12,7 @@ Drafts. Every bracket is filled only from a measured number in [results.md](resu
 
 **Lesson 3: the labels flatter the blocklist.** After a chargeback, the competition labeled the card's later transactions as fraud. A blocklist of training-period fraud therefore looks brilliant. I delayed every label by seven days in event time and still say plainly how much of the win comes from the labeling rule.
 
-**Lesson 4: decide in dollars.** At $5 per review and a 10% margin, the threshold that maximizes net dollars was review ≥ 0.344, decline ≥ 0.928. At the same analyst workload, rules alone saved $152,206, rules plus the model $247,679, and the model alone $368,565: the hand-written rules crowd better cases out of the queue.
+**Lesson 4: decide in dollars, within what a team can do.** Left unconstrained, a $5 review cost makes it worth reviewing a quarter of all transactions, which no team can staff. Capping reviews at 2% of daily volume and auto-declines at 1%, the model alone caught 51.0% of fraud with a 0.81% false-positive rate and saved $221,658 on the holdout, against 23.7% and $109,115 for the rules at the same workload. The blocklist rules decline too many good customers: $76,817 of the $79,693 wrongly declined comes from them.
 
 **What I would do next.** [one or two honest next steps]
 

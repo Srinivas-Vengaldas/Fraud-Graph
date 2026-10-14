@@ -23,17 +23,13 @@ export const transactionSchema = {
     card6: str,
     addr1: num,
     addr2: num,
+    dist1: num,
+    dist2: num,
     P_emaildomain: str,
     R_emaildomain: str,
-    C1: num,
-    C2: num,
-    C13: num,
-    C14: num,
-    D1: num,
-    D2: num,
-    D4: num,
-    D10: num,
-    D15: num,
+    ...Object.fromEntries(Array.from({ length: 14 }, (_, i) => [`C${i + 1}`, num])),
+    ...Object.fromEntries(Array.from({ length: 15 }, (_, i) => [`D${i + 1}`, num])),
+    ...Object.fromEntries(Array.from({ length: 9 }, (_, i) => [`M${i + 1}`, str])),
     DeviceType: str,
     DeviceInfo: str,
     id_30: str,
@@ -55,17 +51,13 @@ export interface Transaction {
   card6?: string | null;
   addr1?: number | null;
   addr2?: number | null;
+  dist1?: number | null;
+  dist2?: number | null;
   P_emaildomain?: string | null;
   R_emaildomain?: string | null;
-  C1?: number | null;
-  C2?: number | null;
-  C13?: number | null;
-  C14?: number | null;
+  // C1-C14 and D1-D15 (masked counts and time deltas), M1-M9 (masked match flags)
+  [key: `C${number}` | `D${number}` | `M${number}`]: number | string | null | undefined;
   D1?: number | null;
-  D2?: number | null;
-  D4?: number | null;
-  D10?: number | null;
-  D15?: number | null;
   DeviceType?: string | null;
   DeviceInfo?: string | null;
   id_30?: string | null;
