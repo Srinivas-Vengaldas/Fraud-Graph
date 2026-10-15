@@ -2,7 +2,9 @@
 
 A real-time risk engine for card-not-present payments. Every transaction gets **approve, review or decline** in a few milliseconds, with reasons an analyst can read ("device linked to 7 card entities in 24 h"). It combines four signals, cheapest first: a Bloom-filter blocklist, sliding-window velocity rules, an identity graph that groups linked cards and devices into rings, and a LightGBM model served through ONNX in Node. It is built on the IEEE-CIS (Vesta) dataset of about 590,000 real anonymized e-commerce transactions, evaluated on a time-based holdout, and judged in dollars.
 
-> **Status:** results below are on the real IEEE-CIS training data (590,540 transactions, time-based holdout of the last 42 days). Everything runs locally; the live demo, video and load test on a deployed host are not done yet.
+> **Status:** results below are on the real IEEE-CIS training data (590,540 transactions, time-based holdout of the last 42 days). The project runs locally with one command and is not hosted; a demo video shows it end to end.
+>
+> **Demo video:** _link to be added_
 
 ## Architecture
 
@@ -65,7 +67,7 @@ Analysts can review 2% of daily transactions and at most 1% are auto-declined. W
 
 ### Latency
 
-Scoring inside the API (blocklist, windows, ring graph, model; excluding the database write): p50 0.62 ms, p95 2.31 ms. End to end on a MacBook (Apple M1), 20 concurrent clients: 651 requests/s, p95 59 ms. ONNX model alone: p95 0.07 ms. Details and commands in [docs/load.md](docs/load.md); the deployed-host run is still to do.
+Scoring inside the API (blocklist, windows, ring graph, model; excluding the database write): p50 0.40 ms, p95 1.78 ms. End to end on a MacBook (Apple M1), with the API warmed on all 590K real transactions: 849 requests/s at p95 10.9 ms with 5 concurrent clients, 952 requests/s at p95 46.7 ms with 20. ONNX model alone: p95 0.07 ms. Details and commands in [docs/load.md](docs/load.md).
 
 ## Quick start
 
