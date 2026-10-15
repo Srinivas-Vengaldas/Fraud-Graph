@@ -8,7 +8,7 @@ A real-time risk engine for card-not-present payments. Every transaction gets **
 
 ![FraudGraph demo: API call, review queue, ring explorer, results](docs/media/demo.gif)
 
-Loops continuously (1.25x speed; [full-resolution MP4](docs/media/demo.mp4)): a live `POST /v1/score` decision with reasons, an idempotent retry, the review queue, two clicks from a case to its identity ring, and the results.
+A live `POST /v1/score` decision with reasons, an idempotent retry, the review queue, two clicks from a case to its identity ring, and the results.
 
 ## Architecture
 
