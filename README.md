@@ -2,9 +2,13 @@
 
 A real-time risk engine for card-not-present payments. Every transaction gets **approve, review or decline** in a few milliseconds, with reasons an analyst can read ("device linked to 7 card entities in 24 h"). It combines four signals, cheapest first: a Bloom-filter blocklist, sliding-window velocity rules, an identity graph that groups linked cards and devices into rings, and a LightGBM model served through ONNX in Node. It is built on the IEEE-CIS (Vesta) dataset of about 590,000 real anonymized e-commerce transactions, evaluated on a time-based holdout, and judged in dollars.
 
-> **Status:** results below are on the real IEEE-CIS training data (590,540 transactions, time-based holdout of the last 42 days). The project runs locally with one command and is not hosted; a demo video shows it end to end.
->
-> **Demo video:** _link to be added_
+> **Status:** results below are on the real IEEE-CIS training data (590,540 transactions, time-based holdout of the last 42 days). The project runs locally with one command and is not hosted; the demo video below shows it end to end.
+
+## Demo
+
+[![FraudGraph demo: API call, review queue, ring explorer, results](docs/media/demo_poster.png)](docs/media/demo.mp4)
+
+[Watch the 2-minute demo](docs/media/demo.mp4): a live `POST /v1/score` decision with reasons, an idempotent retry, the review queue, two clicks from a case to its identity ring, and the results.
 
 ## Architecture
 

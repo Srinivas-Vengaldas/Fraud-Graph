@@ -18,6 +18,8 @@ Drafts. Every bracket is filled only from a measured number in [results.md](resu
 
 ## Demo video outline (2–3 minutes)
 
+Recorded: [docs/media/demo.mp4](media/demo.mp4) (silent, captioned).
+
 Before recording: `docker compose up -d db redis`, start the API (`make api` or `cd server && node dist/index.js`), and open http://localhost:3000. Use QuickTime → New Screen Recording, or Cmd+Shift+5.
 
 1. **The problem (20 s).** README top: card-not-present fraud, both kinds of mistake cost money, so results are in dollars.
